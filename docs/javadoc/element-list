@@ -1,0 +1,8 @@
+com.colegiorural
+com.colegiorural.config
+com.colegiorural.dao
+com.colegiorural.dao.jdbc
+com.colegiorural.dominio
+com.colegiorural.regla
+com.colegiorural.servicio
+com.colegiorural.web

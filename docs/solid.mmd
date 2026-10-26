@@ -1,0 +1,7 @@
+flowchart LR
+  S1[S · Una responsabilidad<br/>1 servicio y 1 DAO por tema]
+  O1[O · Abierto/Cerrado<br/>nueva ReglaAlerta = nueva clase]
+  L1[L · Sustitución<br/>JDBC o Memoria, mismo contrato]
+  I1[I · Interfaces pequeñas<br/>un DAO por entidad]
+  D1[D · Inversión<br/>servicios reciben interfaces]
+  S1 --- O1 --- L1 --- I1 --- D1

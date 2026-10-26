@@ -1,0 +1,7 @@
+flowchart TB
+  S[Servicios<br/>CalificacionService, AlertaService...] -->|depende de| I[Interfaces DAO<br/>EstudianteDao, CalificacionDao...]
+  I --> J[JdbcXxxDao<br/>JdbcTemplate]
+  I --> Mem[MemoriaXxxDao<br/>pruebas JUnit]
+  J --> My[(MySQL)]
+  J --> Pg[(PostgreSQL)]
+  P[spring.profiles.active] -.elige.-> J

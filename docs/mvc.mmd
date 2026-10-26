@@ -1,0 +1,8 @@
+flowchart LR
+  N[Navegador] -->|HTTP| C[Controlador<br/>web/*Controller]
+  C -->|llama| S[Servicio<br/>reglas de negocio]
+  S -->|usa| D[DAO interfaces]
+  C -->|datos al Modelo| V[Vista Thymeleaf<br/>templates/*.html]
+  V -->|HTML| N
+  S -.->|devuelve| M[(Modelo<br/>records dominio)]
+  M -.-> C

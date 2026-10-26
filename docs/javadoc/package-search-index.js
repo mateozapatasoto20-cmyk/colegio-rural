@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"com.colegiorural"},{"l":"com.colegiorural.config"},{"l":"com.colegiorural.dao"},{"l":"com.colegiorural.dao.jdbc"},{"l":"com.colegiorural.dominio"},{"l":"com.colegiorural.regla"},{"l":"com.colegiorural.servicio"},{"l":"com.colegiorural.web"}];updateSearchResults();
