@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: pagina('Ficha del estudiante', '/estudiantes', ~{::content})}">
+<body>
+<th:block th:fragment="content" th:with="e=${ficha.estudiante}">
+<div class="card">
+  <div class="ficha-cab">
+    <span class="avatar grande" th:text="${e.iniciales()}"></span>
+    <div><h2 th:text="${e.nombreCompleto()}"></h2>
+      <div class="datos"><span><span th:text="${e.grado}"></span> · sección <span th:text="${e.seccion}"></span></span><span>DNI <span th:text="${e.dni}"></span></span>
+        <span class="badge" th:classappend="${e.activo} ? 'verde' : 'gris'" th:text="${e.activo} ? 'Activo' : 'Inactivo'"></span></div></div>
+    <div class="acc">
+      <a class="btn sec" th:href="'/boletin/' + ${e.id}"><th:block th:utext="${@vista.icono('imprimir')}"></th:block>Boletín</a>
+      <th:block th:if="${puedeEditar}">
+        <a class="btn sec" th:href="'/estudiantes?q=' + ${e.dni}">Editar datos</a>
+        <a class="btn" th:href="'/calificaciones?nuevo=1&amp;est=' + ${e.id}"><th:block th:utext="${@vista.icono('notas')}"></th:block>Registrar nota</a>
+      </th:block>
+    </div>
+  </div>
+</div>
+
+<div class="kpis mt">
+  <div class="kpi"><div class="et">Promedio</div><div class="num" th:text="${@vista.num(ficha.promedio)}"></div><div class="sub"><span th:text="${ficha.notas.size()}"></span> calificaciones</div></div>
+  <div class="kpi"><div class="et">Asistencia promedio</div><div class="num" th:text="${ficha.asistencia == null ? '—' : @vista.num(ficha.asistencia, 0) + '%'}"></div><div class="sub">mínimo: <span th:text="${@vista.num(asisMin, 0)}"></span>%</div></div>
+  <div class="kpi" th:classappend="${ficha.activas gt 0} ? 'alerta'"><div class="et">Alertas activas</div><div class="num" th:text="${ficha.activas}"></div><div class="sub"><span th:text="${ficha.alertas.size()}"></span> en total</div></div>
+</div>
+
+<div class="card mt">
+  <div class="card-cab"><h2>Calendario de asistencia</h2>
+    <form method="get" class="filtros" style="margin:0"><input type="hidden" name="mes" th:value="${cal.mes}">
+      <select name="curso" data-auto aria-label="Curso"><option value="">Todos los cursos</option>
+        <option th:each="k : ${as.cursos}" th:value="${k.cursoId}" th:text="${k.nombre}" th:selected="${cursoCal == k.cursoId}"></option></select></form></div>
+  <div class="cal-nav"><a class="btn sec chico" th:href="${@vista.urlCon(consulta, 'mes', cal.anterior)}">‹ Anterior</a>
+    <b th:text="${cal.titulo}"></b>
+    <a class="btn sec chico" th:href="${@vista.urlCon(consulta, 'mes', cal.siguiente)}">Siguiente ›</a></div>
+  <div class="cal" role="grid" aria-label="Calendario de asistencia">
+    <div class="cal-cab" th:each="dn : ${ {'Lun','Mar','Mié','Jue','Vie','Sáb','Dom'} }" th:text="${dn}"></div>
+    <div class="cal-vacio" th:each="i : ${#numbers.sequence(1, cal.inicio - 1)}" th:if="${cal.inicio gt 1}"></div>
+    <div class="cal-dia" th:each="d : ${#numbers.sequence(1, cal.dias)}" th:with="x=${cal.porDia.get(d)}"
+         th:classappend="${x != null ? x.estado : ''}" th:attr="title=${x != null ? x.detalle : null}" th:text="${d}"></div>
+  </div>
+  <div class="cal-leyenda"><span><i class="presente"></i>Asistió (<span th:text="${@vista.n(cal.conteo, 'presente')}"></span>)</span><span><i class="tardanza"></i>Tardanza (<span th:text="${@vista.n(cal.conteo, 'tardanza')}"></span>)</span><span><i class="falta"></i>Falta (<span th:text="${@vista.n(cal.conteo, 'falta')}"></span>)</span><span><i class="justificada"></i>Justificada (<span th:text="${@vista.n(cal.conteo, 'justificada')}"></span>)</span></div>
+  <p class="leyenda">Pasa el mouse sobre un día para ver el detalle por curso. Si hay varios cursos el mismo día, se muestra el peor estado.</p>
+</div>
+
+<div class="card mt">
+  <h2>Asistencia diaria<span th:if="${as.porcentaje != null}" th:text="' · ' + ${@vista.num(as.porcentaje, 0)} + '% de asistencia'"></span></h2>
+  <p class="vacio" th:if="${as.cursos.isEmpty()}">Todavía no hay pase de lista registrado.</p>
+  <div class="tabla-wrap" th:if="${!as.cursos.isEmpty()}"><table class="tabla-chica"><thead><tr><th>Curso</th><th>Presente</th><th>Tardanza</th><th>Falta</th><th>Justificada</th><th>Asistió</th></tr></thead><tbody>
+    <tr th:each="k : ${as.cursos}"><td th:text="${k.nombre}"></td><td th:text="${@vista.n(k.conteo, 'presente')}"></td><td th:text="${@vista.n(k.conteo, 'tardanza')}"></td><td th:text="${@vista.n(k.conteo, 'falta')}"></td><td th:text="${@vista.n(k.conteo, 'justificada')}"></td><td><th:block th:replace="~{fragmentos :: asistencia(${k.porcentaje})}"></th:block></td></tr>
+  </tbody></table></div>
+</div>
+
+<div class="grid g-2-1 mt">
+  <div class="card">
+    <h2>Calificaciones por curso</h2>
+    <p class="vacio" th:if="${ficha.notas.isEmpty()}">Todavía no tiene notas registradas.</p>
+    <th:block th:if="${!ficha.notas.isEmpty()}">
+      <div class="barras">
+        <div class="barra-fila" th:each="n : ${ficha.notas}" th:title="${n.curso + ': ' + @vista.num(n.nota)}">
+          <span class="barra-etq" th:text="${n.curso}"></span>
+          <span class="barra-pista"><span class="barra-relleno" th:classappend="${n.nota lt notaMin} ? 'crit' : 'ok'" th:style="'width:' + ${n.nota * 5} + '%'"></span></span>
+          <span class="barra-val" th:text="${@vista.num(n.nota)}"></span></div></div>
+      <p class="leyenda">Escala de 0 a 20. En rojo, notas menores a <span th:text="${@vista.num(notaMin, 0)}"></span>.</p>
+      <div class="tabla-wrap mt"><table><thead><tr><th>Curso</th><th>Nota</th><th>Asistencia</th></tr></thead><tbody>
+        <tr th:each="n : ${ficha.notas}"><td th:text="${n.curso}"></td><td><th:block th:replace="~{fragmentos :: nota(${n.nota})}"></th:block></td><td><th:block th:replace="~{fragmentos :: asistencia(${n.asistencia})}"></th:block></td></tr>
+      </tbody></table></div>
+    </th:block>
+  </div>
+  <div class="card">
+    <h2>Historial de alertas</h2>
+    <div class="hist">
+      <p class="vacio" th:if="${ficha.alertas.isEmpty()}">Sin alertas. ¡Buen seguimiento!</p>
+      <div class="hist-item" th:each="a : ${ficha.alertas}"><th:block th:replace="~{fragmentos :: tipo(${a.tipo})}"></th:block><div><p th:text="${a.mensaje}"></p><p class="sec"><span th:text="${a.activa()} ? 'Activa' : 'Resuelta'"></span> · <span th:text="${@vista.fechaHora(a.creada)}"></span></p></div></div>
+    </div>
+  </div>
+</div>
+</th:block>
+</body>
+</html>

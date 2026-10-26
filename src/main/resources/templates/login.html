@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iniciar sesión - Colegio Rural</title>
+<link rel="stylesheet" href="/assets/estilos.css">
+<script>try{var t=localStorage.getItem('tema');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<div class="login">
+  <section class="login-hero">
+    <th:block th:utext="${@vista.logoLogin()}"></th:block>
+    <h1>COLEGIO RURAL</h1>
+    <p>Educación con valores, construyendo futuro</p>
+  </section>
+  <section class="login-form">
+    <div class="card">
+      <h2>Iniciar sesión</h2>
+      <p class="error-box" role="alert" th:if="${error != null}" th:text="${error}"></p>
+      <form method="post" action="/login" autocomplete="on">
+        <th:block th:replace="~{fragmentos :: csrf}"></th:block>
+        <label class="campo">Usuario<input type="text" name="usuario" th:value="${usuario}" autocomplete="username" autofocus></label>
+        <label class="campo">Contraseña<input type="password" name="clave" autocomplete="current-password"></label>
+        <button class="btn" style="justify-content:center">Ingresar</button>
+      </form>
+      <p class="olvido"><a href="#" data-open="dlgOlvido">¿Olvidaste tu contraseña?</a></p>
+      <details class="acceso-demo"><summary>Usuarios de prueba</summary>
+        <p><code>admin</code> / <code>admin123</code> · <code>coord</code> / <code>coord123</code><br><code>docente</code> / <code>docente123</code> · <code>alumno</code> / <code>alumno123</code></p>
+      </details>
+    </div>
+  </section>
+</div>
+<dialog class="modal" id="dlgOlvido">
+  <div class="modal-card">
+    <header><h2>Recuperar contraseña</h2></header>
+    <div class="cuerpo"><p style="margin:0">Pide al administrador del colegio que restablezca tu contraseña. Recibirás una clave temporal y podrás cambiarla en <b>Mi perfil</b>.</p></div>
+    <footer><button type="button" class="btn" data-cerrar>Entendido</button></footer>
+  </div>
+</dialog>
+<script src="/assets/app.js"></script>
+</body>
+</html>

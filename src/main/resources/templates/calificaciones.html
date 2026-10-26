@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: pagina('Notas', '/calificaciones', ~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="cabecera-pag">
+  <div><h2>Notas por curso</h2><p>Si la nota es menor a <span th:text="${@vista.num(notaMin, 0)}"></span> o la asistencia menor a <span th:text="${@vista.num(asisMin, 0)}"></span> %, el sistema crea la alerta solo.</p></div>
+  <button type="button" class="btn" data-open="dlgNota" data-title="Registrar nota y asistencia"><th:block th:utext="${@vista.icono('mas')}"></th:block>Registrar nota</button>
+</div>
+
+<div class="card">
+  <form class="filtros" method="get">
+    <label class="buscador"><th:block th:utext="${@vista.icono('buscar')}"></th:block><input type="text" name="q" th:value="${f.q}" placeholder="Estudiante o DNI" aria-label="Buscar"></label>
+    <select name="curso" data-auto aria-label="Curso"><option value="">Todos los cursos</option><option th:each="cu : ${cursos}" th:text="${cu}" th:selected="${f.curso == cu}"></option></select>
+    <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" name="riesgo" value="1" th:checked="${f.riesgo}" onchange="this.form.submit()"> Solo en riesgo</label>
+    <button class="btn">Buscar</button><a class="btn sec" href="/calificaciones">Restablecer filtros</a>
+  </form>
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Estudiante</th><th>Curso</th><th>Nota</th><th>Asistencia</th><th>Situación</th><th></th></tr></thead><tbody>
+    <tr th:if="${r.items.isEmpty()}"><td colspan="6" class="vacio">No hay registros con esos filtros.</td></tr>
+    <tr th:each="k : ${r.items}" th:with="c=${k.calificacion}, e=${k.estudiante}, riesgo=${k.calificacion.nota lt notaMin or k.calificacion.asistencia lt asisMin}">
+      <td><div class="persona"><span class="avatar" th:text="${e.iniciales()}"></span><div><a th:href="'/estudiantes/' + ${e.id}" th:text="${e.apellidosNombres()}"></a><div class="sec" th:text="${e.gradoSeccion()}"></div></div></div></td>
+      <td th:text="${c.curso}"></td><td><th:block th:replace="~{fragmentos :: nota(${c.nota})}"></th:block></td><td><th:block th:replace="~{fragmentos :: asistencia(${c.asistencia})}"></th:block></td>
+      <td><span class="badge" th:classappend="${riesgo} ? 'rojo' : 'verde'" th:text="${riesgo} ? 'En riesgo' : 'Normal'"></span></td>
+      <td><div class="acciones"><form method="post" th:attr="data-confirm='¿Eliminar este registro de ' + ${c.curso} + '?'"><th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="eliminar"><input type="hidden" name="id" th:value="${c.id}"><button class="icon-btn peligro" title="Eliminar" aria-label="Eliminar"><th:block th:utext="${@vista.icono('borrar')}"></th:block></button></form></div></td>
+    </tr></tbody></table></div>
+  <th:block th:replace="~{fragmentos :: paginador(${r.total}, ${pagina}, ${porPagina})}"></th:block>
+</div>
+
+<dialog class="modal" id="dlgNota">
+  <form method="post" class="modal-card">
+    <header><h2 data-titulo>Registrar nota y asistencia</h2><button type="button" class="icon-btn" data-cerrar aria-label="Cerrar">×</button></header>
+    <div class="cuerpo">
+      <th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="guardar">
+      <p class="error-box" role="alert" th:if="${errorDialogo != null}" th:text="${errorDialogo}"></p>
+      <div class="form-grid">
+        <label class="campo ancho">Estudiante<select name="estudiante_id" required><option th:each="e : ${estudiantes}" th:value="${e.id}" th:text="${e.apellidos + ', ' + e.nombres + ' — ' + e.grado + ' ' + e.seccion}"></option></select></label>
+        <label class="campo ancho">Curso<select name="curso" required><option th:each="cu : ${cursos}" th:text="${cu}"></option></select></label>
+        <label class="campo">Nota (0 a 20)<input type="number" name="nota" id="campoNota" min="0" max="20" step="0.5" th:attr="data-min=${notaMin}" required></label>
+        <label class="campo">Asistencia (%)<input type="number" name="asistencia" id="campoAsis" min="0" max="100" th:attr="data-min=${asisMin}" required></label>
+        <p class="pista ancho" id="pistaAlerta" aria-live="polite"></p>
+      </div>
+    </div>
+    <footer><button type="button" class="btn sec" data-cerrar>Cancelar</button><button class="btn">Guardar registro</button></footer>
+  </form>
+</dialog>
+</th:block>
+</body>
+</html>

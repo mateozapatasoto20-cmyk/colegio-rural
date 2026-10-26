@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: pagina('Mis notas', '/portal', ~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="card" th:if="${ficha == null}"><p class="vacio">Tu usuario todavía no está vinculado a un estudiante. Pide al administrador que lo vincule.</p></div>
+<th:block th:if="${ficha != null}">
+<div class="cabecera-pag"><div><h2 th:text="${ficha.estudiante.nombreCompleto()}"></h2><p><span th:text="${ficha.estudiante.grado}"></span> · sección <span th:text="${ficha.estudiante.seccion}"></span></p></div>
+  <a class="btn" href="/boletin"><th:block th:utext="${@vista.icono('imprimir')}"></th:block>Ver mi boletín</a></div>
+<div class="kpis">
+  <div class="kpi"><div class="et">Mi promedio</div><div class="num" th:text="${@vista.num(ficha.promedio)}"></div><div class="sub">mínimo aprobatorio: <span th:text="${@vista.num(notaMin, 0)}"></span></div></div>
+  <div class="kpi"><div class="et">Mi asistencia</div><div class="num" th:text="${ficha.asistencia == null ? '—' : @vista.num(ficha.asistencia, 0) + '%'}"></div><div class="sub">mínimo: <span th:text="${@vista.num(asisMin, 0)}"></span>%</div></div>
+  <div class="kpi" th:classappend="${ficha.activas gt 0} ? 'alerta'"><div class="et">Avisos pendientes</div><div class="num" th:text="${ficha.activas}"></div></div>
+</div>
+<div class="grid g-2-1">
+  <div class="card"><h2>Mis notas por curso</h2>
+    <p class="vacio" th:if="${ficha.notas.isEmpty()}">Aún no tienes notas registradas.</p>
+    <th:block th:if="${!ficha.notas.isEmpty()}">
+      <div class="barras">
+        <div class="barra-fila" th:each="n : ${ficha.notas}" th:title="${n.curso + ': ' + @vista.num(n.nota)}">
+          <span class="barra-etq" th:text="${n.curso}"></span>
+          <span class="barra-pista"><span class="barra-relleno" th:classappend="${n.nota lt notaMin} ? 'crit' : 'ok'" th:style="'width:' + ${n.nota * 5} + '%'"></span></span>
+          <span class="barra-val" th:text="${@vista.num(n.nota)}"></span></div></div>
+      <div class="tabla-wrap mt"><table><thead><tr><th>Curso</th><th>Nota</th><th>Asistencia</th></tr></thead><tbody>
+        <tr th:each="n : ${ficha.notas}"><td th:text="${n.curso}"></td><td><th:block th:replace="~{fragmentos :: nota(${n.nota})}"></th:block></td><td><th:block th:replace="~{fragmentos :: asistencia(${n.asistencia})}"></th:block></td></tr></tbody></table></div>
+    </th:block></div>
+  <div class="grid">
+  <div class="card"><h2>Mi asistencia diaria</h2>
+    <p class="vacio" th:if="${as.cursos.isEmpty()}">Aún no hay asistencia registrada.</p>
+    <th:block th:if="${!as.cursos.isEmpty()}">
+      <div class="barras">
+        <div class="barra-fila" th:each="k : ${as.cursos}">
+          <span class="barra-etq" th:text="${k.nombre}"></span>
+          <span class="barra-pista"><span class="barra-relleno" th:classappend="${k.porcentaje != null and k.porcentaje lt asisMin} ? 'warn' : 'ok'" th:style="'width:' + ${k.porcentaje == null ? 0 : k.porcentaje} + '%'"></span></span>
+          <span class="barra-val" th:text="${@vista.num(k.porcentaje, 0)}"></span></div></div>
+      <p class="leyenda">Porcentaje de días que asististe por curso. Total: <span th:text="${@vista.n(as.total, 'falta')}"></span> faltas, <span th:text="${@vista.n(as.total, 'tardanza')}"></span> tardanzas.</p></th:block></div>
+  <div class="card"><div class="card-cab"><h2>Comunicados</h2><a href="/comunicados">Ver todos</a></div>
+    <div class="mini-com"><div th:each="a : ${coms}"><b th:text="${a.titulo}"></b><span th:text="${@vista.dia(a.creado)}"></span></div><p class="vacio" th:if="${coms.isEmpty()}">Sin comunicados.</p></div></div>
+  <div class="card"><h2>Mis avisos</h2><div class="hist">
+    <p class="vacio" th:if="${ficha.activas == 0}">No tienes avisos. ¡Sigue así!</p>
+    <th:block th:each="a : ${ficha.alertas}"><div class="hist-item" th:if="${a.activa()}"><th:block th:replace="~{fragmentos :: tipo(${a.tipo})}"></th:block><p th:text="${a.mensaje}"></p></div></th:block></div></div>
+  </div>
+</div>
+</th:block>
+</th:block>
+</body>
+</html>

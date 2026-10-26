@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: pagina('Pase de lista', '/asistencia', ~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="cabecera-pag">
+  <div><h2>Pase de lista</h2><p>Marca la asistencia del día. Si un estudiante falta mucho, el sistema crea la alerta solo.</p></div>
+</div>
+
+<div class="card">
+  <form class="filtros" method="get" style="margin:0">
+    <select name="curso" required aria-label="Curso">
+      <option value="">Elige un curso…</option>
+      <option th:each="k : ${cursos}" th:value="${k.id}" th:text="${k.nombre + ' — ' + k.grado + ' ' + k.seccion}" th:selected="${cursoId == k.id}"></option>
+    </select>
+    <input type="date" name="fecha" th:value="${fechaTexto}" th:max="${hoy}" aria-label="Fecha" style="font:inherit;padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)">
+    <button class="btn">Ver lista</button>
+  </form>
+</div>
+
+<p class="error-box mt" role="alert" th:if="${error != null}" th:text="${error}"></p>
+
+<div class="grid g-2-1 mt" th:if="${p != null}">
+  <div class="card">
+    <div class="card-cab"><h2><span th:text="${p.curso.nombre + ' — ' + p.curso.grado + ' ' + p.curso.seccion}"></span> · <span th:text="${@vista.fecha(p.fecha)}"></span></h2></div>
+    <p class="vacio" th:if="${p.filas.isEmpty()}">No hay estudiantes activos en <span th:text="${p.curso.grado + ' ' + p.curso.seccion}"></span>. Registra estudiantes de ese grado y sección primero.</p>
+    <th:block th:if="${!p.filas.isEmpty()}">
+    <p class="aviso" th:classappend="${p.registrado} ? 'ok'" th:text="${p.registrado} ? 'Ya se pasó lista este día. Puedes corregirla y guardar de nuevo.' : 'Aún no se pasó lista este día. Todos aparecen como presentes: cambia solo a quien falte o llegue tarde.'"></p>
+    <form method="post" id="formLista">
+      <th:block th:replace="~{fragmentos :: csrf}"></th:block>
+      <div class="barra-lista">
+        <div class="conteo">
+          <span><b id="n-presente">0</b> presentes</span><span><b id="n-tardanza">0</b> tardanzas</span>
+          <span><b id="n-falta">0</b> faltas</span><span><b id="n-justificada">0</b> justificadas</span>
+        </div>
+        <span class="espacio"></span>
+        <button type="button" class="btn sec chico" id="btnTodos"><th:block th:utext="${@vista.icono('ok')}"></th:block>Marcar todos presentes</button>
+      </div>
+      <div class="tabla-wrap"><table>
+        <thead><tr><th>Estudiante</th><th>Asistencia de hoy</th><th>Acumulado</th></tr></thead><tbody>
+        <tr th:each="f : ${p.filas}" th:with="e=${f.estudiante}, sel=${f.estado != null ? f.estado.valor() : 'presente'}">
+          <td><div class="persona"><span class="avatar" th:text="${e.iniciales()}"></span><div><a th:href="'/estudiantes/' + ${e.id}" th:text="${e.apellidosNombres()}"></a></div></div></td>
+          <td><div class="seg-grupo" role="radiogroup" th:attr="aria-label='Asistencia de ' + ${e.nombres}">
+            <label th:each="s : ${estados}" class="seg" th:classappend="${s.valor()}"><input type="radio" th:name="'estado[' + ${e.id} + ']'" th:value="${s.valor()}" th:checked="${sel == s.valor()}"><span th:text="${s.etiqueta()}"></span></label></div></td>
+          <td><th:block th:replace="~{fragmentos :: asistencia(${f.porcentaje})}"></th:block> <span class="sec" th:with="n=${@vista.n(f.conteo, 'falta')}" th:text="${n + (n == 1 ? ' falta' : ' faltas')}"></span></td>
+        </tr></tbody></table></div>
+      <div class="pie-guardar"><button class="btn"><th:block th:utext="${@vista.icono('ok')}"></th:block>Guardar asistencia</button></div>
+    </form>
+    </th:block>
+  </div>
+  <div class="grid">
+    <div class="card"><h2>Días con lista en este curso</h2>
+      <p class="vacio" th:if="${p.fechas.isEmpty()}">Todavía no se pasó lista.</p>
+      <div class="chips"><a th:each="d : ${p.fechas}" th:href="${@vista.urlCon(consulta, 'fecha', d)}" th:text="${@vista.fecha(d)}"></a></div>
+    </div>
+    <div class="card"><h2>Cómo se generan las alertas</h2>
+      <ul class="lista-pasos">
+        <li>Al guardar, se revisa a cada estudiante que tenga falta.</li>
+        <li>Con 3 o más registros, si su asistencia baja de <b><span th:text="${@vista.num(asisMin, 0)}"></span>%</b> se crea una alerta.</li>
+        <li>Si acumula <b th:text="${faltasSeguidas}"></b> faltas seguidas, también.</li>
+        <li>No se repiten alertas iguales mientras sigan activas.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<div class="card mt" th:if="${p == null and error == null}"><p class="vacio">Elige un curso y una fecha para ver la lista de estudiantes.</p></div>
+</th:block>
+</body>
+</html>

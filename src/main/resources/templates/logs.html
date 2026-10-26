@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: pagina('Registro de actividad', '/logs', ~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="cabecera-pag"><div><h2>Registro de actividad</h2><p>Auditoría de lo que se hace en el sistema: quién, qué y cuándo.</p></div></div>
+<div class="card"><div class="tabla-wrap"><table><thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th></tr></thead><tbody>
+  <tr th:if="${r.items.isEmpty()}"><td colspan="3" class="vacio">Todavía no hay actividad registrada.</td></tr>
+  <tr th:each="l : ${r.items}"><td class="sec" th:text="${@vista.fechaHora(l.creado)}"></td><td><b th:text="${l.usuario}"></b></td><td th:text="${l.accion}"></td></tr>
+</tbody></table></div><th:block th:replace="~{fragmentos :: paginador(${r.total}, ${pagina}, ${porPagina})}"></th:block></div>
+</th:block>
+</body>
+</html>

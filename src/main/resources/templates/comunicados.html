@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: pagina('Comunicados', '/comunicados', ~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="cabecera-pag">
+  <div><h2>Comunicados</h2><p>Avisos del colegio para docentes y estudiantes.</p></div>
+  <button type="button" class="btn" data-open="dlgCom" data-title="Nuevo comunicado" th:if="${puedePublicar}"><th:block th:utext="${@vista.icono('mas')}"></th:block>Nuevo comunicado</button>
+</div>
+<div class="grid">
+  <div class="card" th:if="${lista.isEmpty()}"><p class="vacio">No hay comunicados por ahora.</p></div>
+  <article class="comunicado" th:each="a : ${lista}">
+    <div class="meta"><span class="badge" th:classappend="${a.audiencia == 'todos'} ? 'verde' : 'ambar'" th:text="${audiencias.get(a.audiencia)}"></span>
+      <span th:text="${a.autor + ' · ' + @vista.fechaHora(a.creado)}"></span><span class="espacio"></span>
+      <form method="post" th:if="${puedePublicar}" th:attr="data-confirm='¿Eliminar el comunicado «' + ${a.titulo} + '»?'" style="margin:0"><th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="eliminar"><input type="hidden" name="id" th:value="${a.id}"><button class="icon-btn peligro" title="Eliminar" aria-label="Eliminar"><th:block th:utext="${@vista.icono('borrar')}"></th:block></button></form></div>
+    <h3 th:text="${a.titulo}"></h3>
+    <p th:text="${a.mensaje}"></p>
+  </article>
+</div>
+
+<dialog class="modal" id="dlgCom" th:if="${puedePublicar}">
+  <form method="post" class="modal-card">
+    <header><h2 data-titulo>Nuevo comunicado</h2><button type="button" class="icon-btn" data-cerrar aria-label="Cerrar">×</button></header>
+    <div class="cuerpo">
+      <th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="publicar">
+      <p class="error-box" role="alert" th:if="${errorDialogo != null}" th:text="${errorDialogo}"></p>
+      <div class="form-grid">
+        <label class="campo ancho">Título<input type="text" name="titulo" maxlength="80" required></label>
+        <label class="campo ancho">Dirigido a<select name="audiencia"><option th:each="x : ${audiencias}" th:value="${x.key}" th:text="${x.value}"></option></select></label>
+        <label class="campo ancho">Mensaje<textarea name="mensaje" rows="5" maxlength="600" required></textarea><small>Máximo 600 caracteres.</small></label>
+      </div>
+    </div>
+    <footer><button type="button" class="btn sec" data-cerrar>Cancelar</button><button class="btn">Publicar</button></footer>
+  </form>
+</dialog>
+</th:block>
+</body>
+</html>

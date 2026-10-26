@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: pagina('Reportes', '/reportes', ~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="cabecera-pag"><div><h2>Reportes académicos</h2><p>Rendimiento, asistencia y alertas por estudiante.</p></div>
+  <div style="display:flex;gap:8px"><a class="btn" th:href="'/reportes/excel?grado=' + ${f.grado}"><th:block th:utext="${@vista.icono('bajar')}"></th:block>Exportar a Excel (.xlsx)</a><a class="btn sec" th:href="'/reportes/csv?grado=' + ${f.grado}">Exportar CSV</a><button type="button" class="btn sec" onclick="window.print()">Imprimir o guardar como PDF</button></div></div>
+<div class="kpis"><div class="kpi"><div class="et">Estudiantes en el reporte</div><div class="num" th:text="${filas.size()}"></div></div>
+  <div class="kpi" th:classappend="${enRiesgo gt 0} ? 'alerta'"><div class="et">En riesgo</div><div class="num" th:text="${enRiesgo}"></div><div class="sub">promedio o asistencia bajo la regla, o con alertas</div></div></div>
+<div class="card">
+  <form class="filtros" method="get">
+    <select name="grado" data-auto aria-label="Grado"><option value="">Todos los grados</option><option th:each="g : ${grados}" th:text="${g}" th:selected="${f.grado == g}"></option></select>
+    <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" name="riesgo" value="1" th:checked="${f.riesgo}" onchange="this.form.submit()"> Solo en riesgo</label>
+    <a class="btn sec" href="/reportes">Restablecer filtros</a></form>
+  <div class="tabla-wrap"><table><thead><tr><th>Estudiante</th><th>Grado</th><th>Promedio</th><th>Asistencia</th><th>Alertas activas</th><th>Situación</th></tr></thead><tbody>
+    <tr th:if="${filas.isEmpty()}"><td colspan="6" class="vacio">No hay estudiantes para este reporte.</td></tr>
+    <tr th:each="x : ${filas}"><td><a th:href="'/estudiantes/' + ${x.estudiante.id}" th:text="${x.nombre()}"></a></td><td th:text="${x.estudiante.grado}"></td><td><th:block th:replace="~{fragmentos :: nota(${x.promedio})}"></th:block></td><td><th:block th:replace="~{fragmentos :: asistencia(${x.asistencia})}"></th:block></td>
+      <td><span th:if="${x.alertas gt 0}" class="badge rojo" th:text="${x.alertas}"></span><span th:unless="${x.alertas gt 0}">0</span></td><td><span class="badge" th:classappend="${x.riesgo} ? 'rojo' : 'verde'" th:text="${x.riesgo} ? 'En riesgo' : 'Normal'"></span></td></tr>
+  </tbody></table></div>
+</div>
+</th:block>
+</body>
+</html>

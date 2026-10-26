@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Logback: registro técnico del sistema (consola + archivo logs/colegio-rural.log que rota cada día).
+     Es distinto de la tabla "logs" de la base de datos, que es la auditoría de acciones de los usuarios. -->
+<configuration>
+  <property name="PATRON" value="%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{30} - %msg%n"/>
+
+  <appender name="CONSOLA" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder><pattern>${PATRON}</pattern></encoder>
+  </appender>
+
+  <appender name="ARCHIVO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>logs/colegio-rural.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>logs/colegio-rural.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+    <encoder><charset>UTF-8</charset><pattern>${PATRON}</pattern></encoder>
+  </appender>
+
+  <!-- Nuestras clases: INFO. Spring y librerías: solo avisos importantes. -->
+  <logger name="com.colegiorural" level="INFO"/>
+  <root level="WARN">
+    <appender-ref ref="CONSOLA"/>
+    <appender-ref ref="ARCHIVO"/>
+  </root>
+  <logger name="org.springframework.boot.web.embedded.tomcat" level="INFO"/>
+  <logger name="org.springframework.boot.StartupInfoLogger" level="INFO"/>
+</configuration>

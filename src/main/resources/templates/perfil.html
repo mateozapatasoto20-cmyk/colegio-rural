@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: pagina('Mi perfil', '/perfil', ~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="cabecera-pag"><div><h2>Mi perfil</h2><p>Tus datos y el cambio de contraseña.</p></div></div>
+<div class="grid g2">
+  <div class="card"><h2>Mis datos</h2><div class="ficha-cab"><span class="avatar grande" th:text="${u.inicial()}"></span>
+    <div><b style="font-size:1.1rem" th:text="${u.nombre}"></b><div class="datos"><span>Usuario: <span th:text="${u.username}"></span></span><span class="badge gris" th:text="${u.rol}"></span></div></div></div></div>
+  <div class="card"><h2>Cambiar contraseña</h2>
+    <p class="error-box" role="alert" th:if="${error != null}" th:text="${error}"></p>
+    <form method="post" class="form-grid"><th:block th:replace="~{fragmentos :: csrf}"></th:block>
+      <label class="campo ancho">Contraseña actual<input type="password" name="actual" autocomplete="current-password" required></label>
+      <label class="campo ancho">Nueva contraseña<input type="password" name="nueva" minlength="6" autocomplete="new-password" required><small>Mínimo 6 caracteres.</small></label>
+      <div class="ancho"><button class="btn"><th:block th:utext="${@vista.icono('llave')}"></th:block>Actualizar contraseña</button></div></form></div>
+</div>
+</th:block>
+</body>
+</html>

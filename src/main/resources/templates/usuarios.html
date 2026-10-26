@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: pagina('Usuarios', '/usuarios', ~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="cabecera-pag"><div><h2>Usuarios</h2><p>Quién puede entrar al sistema y con qué rol. Las contraseñas se guardan cifradas.</p></div>
+  <button type="button" class="btn" data-open="dlgUsr" data-title="Nuevo usuario"><th:block th:utext="${@vista.icono('mas')}"></th:block>Nuevo usuario</button></div>
+<div class="card"><div class="tabla-wrap"><table>
+  <thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estudiante vinculado</th><th>Estado</th><th></th></tr></thead><tbody>
+  <tr th:each="x : ${lista}" th:with="w=${x.usuario}">
+    <td><b th:text="${w.username}"></b></td><td th:text="${w.nombre}"></td><td><span class="badge gris" th:text="${roles.getOrDefault(w.rol, w.rol)}"></span></td>
+    <td><span th:if="${x.estudianteNombre != null}" th:text="${x.estudianteNombre}"></span><span th:unless="${x.estudianteNombre != null}" class="sec">—</span></td>
+    <td><span class="badge" th:classappend="${w.activo} ? 'verde' : 'gris'" th:text="${w.activo} ? 'Activo' : 'Inactivo'"></span></td>
+    <td><div class="acciones">
+      <form method="post" th:attr="data-confirm='¿Restablecer la contraseña de ' + ${w.username} + '? Se generará una clave temporal.'"><th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="restablecer"><input type="hidden" name="id" th:value="${w.id}"><button class="btn sec chico"><th:block th:utext="${@vista.icono('llave')}"></th:block>Restablecer clave</button></form>
+      <form method="post" th:if="${w.id != u.id}"><th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="estado"><input type="hidden" name="id" th:value="${w.id}"><button class="btn sec chico" th:text="${w.activo} ? 'Desactivar' : 'Activar'"></button></form>
+    </div></td></tr>
+</tbody></table></div></div>
+<dialog class="modal" id="dlgUsr"><form method="post" class="modal-card">
+  <header><h2 data-titulo>Nuevo usuario</h2><button type="button" class="icon-btn" data-cerrar aria-label="Cerrar">×</button></header>
+  <div class="cuerpo"><th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="crear"><p class="error-box" role="alert" th:if="${errorDialogo != null}" th:text="${errorDialogo}"></p>
+    <div class="form-grid">
+      <label class="campo">Usuario<input type="text" name="username" maxlength="30" required><small>Minúsculas, números, punto o guion bajo.</small></label>
+      <label class="campo">Nombre completo<input type="text" name="nombre" maxlength="80" required></label>
+      <label class="campo">Rol<select name="rol"><option th:each="r : ${roles}" th:value="${r.key}" th:text="${r.value}"></option></select></label>
+      <label class="campo">Contraseña<input type="password" name="password" minlength="6" required><small>Mínimo 6 caracteres.</small></label>
+      <label class="campo ancho">Estudiante vinculado <small>(solo para el rol Alumno)</small><select name="estudiante_id"><option value="0">— Ninguno —</option><option th:each="e : ${estudiantes}" th:value="${e.id}" th:text="${e.apellidosNombres()}"></option></select></label>
+    </div></div>
+  <footer><button type="button" class="btn sec" data-cerrar>Cancelar</button><button class="btn">Crear usuario</button></footer></form></dialog>
+</th:block>
+</body>
+</html>

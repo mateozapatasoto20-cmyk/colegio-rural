@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: pagina('Alertas', '/alertas', ~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="cabecera-pag">
+  <div><h2>Alertas</h2><p>Estudiantes con bajo rendimiento, faltas o seguimiento manual.</p></div>
+  <button type="button" class="btn" data-open="dlgAlerta" data-title="Nueva alerta manual" th:if="${esCoord}"><th:block th:utext="${@vista.icono('mas')}"></th:block>Nueva alerta manual</button>
+</div>
+<div class="card">
+  <form class="filtros" method="get">
+    <div class="tabs">
+      <a th:href="${@vista.urlCon(consulta, 'estado', '')}" th:classappend="${f.estado == ''} ? 'act'">Todas<span class="n" th:text="${n.getOrDefault('todas', 0)}"></span></a>
+      <a th:href="${@vista.urlCon(consulta, 'estado', 'activa')}" th:classappend="${f.estado == 'activa'} ? 'act'">Activas<span class="n" th:text="${n.getOrDefault('activa', 0)}"></span></a>
+      <a th:href="${@vista.urlCon(consulta, 'estado', 'resuelta')}" th:classappend="${f.estado == 'resuelta'} ? 'act'">Resueltas<span class="n" th:text="${n.getOrDefault('resuelta', 0)}"></span></a>
+    </div>
+    <input type="hidden" name="estado" th:value="${f.estado}">
+    <select name="tipo" data-auto aria-label="Tipo"><option value="">Todos los tipos</option>
+      <option value="nota" th:selected="${f.tipo == 'nota'}">Nota baja</option><option value="asistencia" th:selected="${f.tipo == 'asistencia'}">Asistencia baja</option><option value="manual" th:selected="${f.tipo == 'manual'}">Manual</option></select>
+    <label class="buscador"><th:block th:utext="${@vista.icono('buscar')}"></th:block><input type="text" name="q" th:value="${f.q}" placeholder="Buscar estudiante" aria-label="Buscar"></label>
+    <button class="btn">Buscar</button><a class="btn sec" href="/alertas">Restablecer filtros</a>
+  </form>
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Estudiante</th><th>Tipo</th><th>Detalle</th><th>Estado</th><th></th></tr></thead><tbody>
+    <tr th:if="${r.items.isEmpty()}"><td colspan="5" class="vacio">No hay alertas con esos filtros.</td></tr>
+    <tr th:each="x : ${r.items}" th:with="a=${x.alerta}, e=${x.estudiante}">
+      <td><div class="persona"><span class="avatar" th:text="${e.iniciales()}"></span><div><a th:href="'/estudiantes/' + ${e.id}" th:text="${e.apellidosNombres()}"></a><div class="sec" th:text="${e.gradoSeccion()}"></div></div></div></td>
+      <td><th:block th:replace="~{fragmentos :: tipo(${a.tipo})}"></th:block></td><td th:text="${a.mensaje}"></td>
+      <td><span class="badge" th:classappend="${a.activa()} ? 'rojo' : 'verde'" th:text="${a.activa()} ? 'Activa' : 'Resuelta'"></span></td>
+      <td><div class="acciones"><form method="post" th:if="${esCoord and a.activa()}"><th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="resolver"><input type="hidden" name="id" th:value="${a.id}"><button class="btn chico"><th:block th:utext="${@vista.icono('ok')}"></th:block>Resolver</button></form></div></td>
+    </tr></tbody></table></div>
+  <th:block th:replace="~{fragmentos :: paginador(${r.total}, ${pagina}, ${porPagina})}"></th:block>
+</div>
+<dialog class="modal" id="dlgAlerta" th:if="${esCoord}">
+  <form method="post" class="modal-card">
+    <header><h2 data-titulo>Nueva alerta manual</h2><button type="button" class="icon-btn" data-cerrar aria-label="Cerrar">×</button></header>
+    <div class="cuerpo"><th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="crear">
+      <p class="error-box" role="alert" th:if="${errorDialogo != null}" th:text="${errorDialogo}"></p>
+      <div class="form-grid">
+        <label class="campo ancho">Estudiante<select name="estudiante_id"><option th:each="e : ${estudiantes}" th:value="${e.id}" th:text="${e.apellidosNombres()}"></option></select></label>
+        <label class="campo ancho">Mensaje<input type="text" name="mensaje" maxlength="200" placeholder="Ej.: Citar al apoderado" required></label>
+      </div></div>
+    <footer><button type="button" class="btn sec" data-cerrar>Cancelar</button><button class="btn">Crear alerta</button></footer>
+  </form>
+</dialog>
+</th:block>
+</body>
+</html>

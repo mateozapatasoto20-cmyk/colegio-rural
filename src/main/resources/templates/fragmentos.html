@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Token CSRF que lleva todo formulario POST -->
+<input th:fragment="csrf" type="hidden" name="_csrf" th:value="${csrf}">
+
+<!-- Insignias de color (la regla de qué es "riesgo" viene de las reglas vigentes en la base de datos) -->
+<th:block th:fragment="nota(n)">
+  <span th:if="${n == null}" class="badge gris">Sin notas</span>
+  <span th:unless="${n == null}" class="badge" th:classappend="${n lt notaMin} ? 'rojo' : 'verde'" th:text="${@vista.num(n)}"></span>
+</th:block>
+
+<th:block th:fragment="asistencia(a)">
+  <span th:if="${a == null}" class="badge gris">—</span>
+  <span th:unless="${a == null}" class="badge" th:classappend="${a lt asisMin} ? 'ambar' : 'verde'" th:text="${@vista.num(a, 0) + '%'}"></span>
+</th:block>
+
+<span th:fragment="tipo(t)" class="badge" th:classappend="${t == 'nota'} ? 'rojo' : (${t == 'asistencia'} ? 'ambar' : 'gris')" th:text="${t}"></span>
+
+<!-- Gráfico de barras hecho solo con HTML y CSS -->
+<div th:fragment="barras(items)" class="barras">
+  <div class="barra-fila" th:each="b : ${items}" th:title="${b.etiqueta + ': ' + @vista.num(b.valor)}">
+    <span class="barra-etq" th:text="${b.etiqueta}"></span>
+    <span class="barra-pista"><span class="barra-relleno" th:classappend="${b.clase}" th:style="'width:' + ${@vista.ancho(b, items)} + '%'"></span></span>
+    <span class="barra-val" th:text="${@vista.num(b.valor)}"></span>
+  </div>
+</div>
+
+<nav th:fragment="paginador(total, pagina, porPagina)" th:if="${@vista.paginas(total, porPagina) gt 1}" class="paginador" aria-label="Paginación">
+  <a th:if="${pagina gt 1}" th:href="${@vista.urlCon(consulta, 'p', pagina - 1)}">Anterior</a><span th:unless="${pagina gt 1}" class="off">Anterior</span>
+  <th:block th:each="i : ${#numbers.sequence(1, @vista.paginas(total, porPagina))}">
+    <span th:if="${i == pagina}" class="act" th:text="${i}"></span><a th:unless="${i == pagina}" th:href="${@vista.urlCon(consulta, 'p', i)}" th:text="${i}"></a>
+  </th:block>
+  <a th:if="${pagina lt @vista.paginas(total, porPagina)}" th:href="${@vista.urlCon(consulta, 'p', pagina + 1)}">Siguiente</a><span th:unless="${pagina lt @vista.paginas(total, porPagina)}" class="off">Siguiente</span>
+  <span class="resumen" th:text="${total + ' registros'}"></span>
+</nav>
+</body>
+</html>

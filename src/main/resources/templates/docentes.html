@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: pagina('Docentes', '/docentes', ~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="cabecera-pag"><div><h2>Docentes</h2><p>Quiénes enseñan y cuántos cursos tiene asignados cada uno.</p></div>
+  <button type="button" class="btn" data-open="dlgDoc" data-title="Nuevo docente"><th:block th:utext="${@vista.icono('mas')}"></th:block>Nuevo docente</button></div>
+<div class="card">
+  <form class="filtros" method="get"><label class="buscador"><th:block th:utext="${@vista.icono('buscar')}"></th:block><input type="text" name="q" th:value="${q}" placeholder="Nombre o especialidad" aria-label="Buscar"></label><button class="btn">Buscar</button><a class="btn sec" href="/docentes">Restablecer filtros</a></form>
+  <div class="tabla-wrap"><table><thead><tr><th>Docente</th><th>Especialidad</th><th>Cursos asignados</th><th></th></tr></thead><tbody>
+    <tr th:if="${lista.isEmpty()}"><td colspan="4" class="vacio">No hay docentes con ese criterio.</td></tr>
+    <tr th:each="x : ${lista}" th:with="d=${x.docente}">
+      <td><div class="persona"><span class="avatar" th:text="${d.iniciales()}"></span><b th:text="${d.apellidosNombres()}"></b></div></td>
+      <td th:text="${d.especialidad}"></td><td><span class="badge" th:classappend="${x.cursos gt 0} ? 'verde' : 'gris'" th:text="${x.cursos}"></span></td>
+      <td><div class="acciones"><form method="post" th:attr="data-confirm='¿Eliminar a ' + ${d.nombreCompleto()} + '? Se quitarán sus asignaciones.'"><th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="eliminar"><input type="hidden" name="id" th:value="${d.id}"><button class="icon-btn peligro" title="Eliminar" aria-label="Eliminar"><th:block th:utext="${@vista.icono('borrar')}"></th:block></button></form></div></td></tr>
+  </tbody></table></div>
+</div>
+<dialog class="modal" id="dlgDoc"><form method="post" class="modal-card">
+  <header><h2 data-titulo>Nuevo docente</h2><button type="button" class="icon-btn" data-cerrar aria-label="Cerrar">×</button></header>
+  <div class="cuerpo"><th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="crear"><p class="error-box" role="alert" th:if="${errorDialogo != null}" th:text="${errorDialogo}"></p>
+    <div class="form-grid"><label class="campo">Nombres<input type="text" name="nombres" required></label><label class="campo">Apellidos<input type="text" name="apellidos" required></label>
+    <label class="campo ancho">Especialidad<input type="text" name="especialidad" required></label></div></div>
+  <footer><button type="button" class="btn sec" data-cerrar>Cancelar</button><button class="btn">Guardar docente</button></footer></form></dialog>
+</th:block>
+</body>
+</html>

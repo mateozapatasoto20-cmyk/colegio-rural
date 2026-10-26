@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: pagina('Copia de seguridad', '/respaldo', ~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="cabecera-pag"><div><h2>Copia de seguridad</h2><p>Guarda todos los datos del colegio en un archivo y recupéralos cuando haga falta.</p></div></div>
+<div class="grid g-2-1">
+  <div class="grid">
+    <div class="card">
+      <h2>Descargar copia</h2>
+      <p style="margin-top:0">Genera un archivo <code>.sql</code> con estudiantes, notas, asistencia, alertas, usuarios y comunicados. Guárdalo en un lugar seguro (USB o nube).</p>
+      <form method="post"><th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="descargar"><button class="btn"><th:block th:utext="${@vista.icono('bajar')}"></th:block>Descargar copia ahora</button></form>
+    </div>
+    <div class="card zona-peligro">
+      <h2>Restaurar una copia</h2>
+      <p style="margin-top:0">Reemplaza <b>todos los datos actuales</b> por los del archivo. Solo funcionan archivos descargados desde esta pantalla; cualquier otro se rechaza sin cambiar nada.</p>
+      <form method="post" enctype="multipart/form-data" data-confirm="Se reemplazarán TODOS los datos actuales por los de la copia. ¿Continuar?" class="filtros" style="margin:0">
+        <th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="restaurar">
+        <input type="file" name="archivo" accept=".sql" required aria-label="Archivo de copia">
+        <button class="btn peligro"><th:block th:utext="${@vista.icono('subir')}"></th:block>Restaurar copia</button>
+      </form>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Qué contiene hoy</h2>
+    <div class="tabla-wrap"><table class="tabla-chica"><tbody>
+      <tr th:each="x : ${nombres}"><td th:text="${x.value}"></td><td style="text-align:right"><b th:text="${conteos.getOrDefault(x.key, 0)}"></b></td></tr>
+    </tbody></table></div>
+  </div>
+</div>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: pagina('Boletín de notas', ${activa}, ~{::content})}">
+<body>
+<th:block th:fragment="content" th:with="e=${b.ficha.estudiante}, ficha=${b.ficha}, as=${b.asistencia}">
+<div class="cabecera-pag">
+  <div><h2>Boletín de notas</h2><p>Listo para imprimir o guardar como PDF.</p></div>
+  <button type="button" class="btn" onclick="window.print()"><th:block th:utext="${@vista.icono('imprimir')}"></th:block>Imprimir / guardar PDF</button>
+</div>
+<article class="boletin">
+  <div class="boletin-cab"><th:block th:utext="${@vista.logo()}"></th:block><div><h2>I.E. N° 86135 — Aija</h2><p>Boletín de notas · Periodo <span th:text="${periodo}"></span></p></div></div>
+  <div class="datos-est">
+    <div><b>Estudiante:</b> <span th:text="${e.apellidosNombres()}"></span></div><div><b>DNI:</b> <span th:text="${e.dni}"></span></div>
+    <div><b>Grado y sección:</b> <span th:text="${e.gradoSeccion()}"></span></div><div><b>Fecha de emisión:</b> <span th:text="${@vista.fecha(hoy)}"></span></div>
+  </div>
+
+  <h3>Calificaciones</h3>
+  <p th:if="${ficha.notas.isEmpty()}">Aún no hay notas registradas.</p>
+  <table th:if="${!ficha.notas.isEmpty()}"><thead><tr><th>Curso</th><th>Nota</th><th>Asistencia</th><th>Resultado</th></tr></thead><tbody>
+    <tr th:each="n : ${ficha.notas}"><td th:text="${n.curso}"></td><td><b th:text="${@vista.num(n.nota)}"></b></td><td th:text="${@vista.num(n.asistencia, 0) + '%'}"></td>
+      <td th:class="${n.nota ge notaMin} ? 'ap' : 'de'" th:text="${n.nota ge notaMin} ? 'Aprobado' : 'Desaprobado'"></td></tr>
+    <tr><td><b>Promedio general</b></td><td><b th:text="${@vista.num(ficha.promedio)}"></b></td><td th:text="${@vista.num(ficha.asistencia, 0) + '%'}"></td>
+      <td th:class="${ficha.promedio != null and ficha.promedio ge notaMin} ? 'ap' : 'de'" th:text="${ficha.promedio != null and ficha.promedio ge notaMin} ? 'Aprobado' : 'En riesgo'"></td></tr>
+  </tbody></table>
+
+  <h3>Asistencia diaria</h3>
+  <p th:if="${as.cursos.isEmpty()}">Aún no hay pase de lista registrado.</p>
+  <table th:if="${!as.cursos.isEmpty()}"><thead><tr><th>Curso</th><th>Presente</th><th>Tardanza</th><th>Falta</th><th>Justificada</th><th>Asistió</th></tr></thead><tbody>
+    <tr th:each="k : ${as.cursos}"><td th:text="${k.nombre}"></td><td th:text="${@vista.n(k.conteo, 'presente')}"></td><td th:text="${@vista.n(k.conteo, 'tardanza')}"></td><td th:text="${@vista.n(k.conteo, 'falta')}"></td><td th:text="${@vista.n(k.conteo, 'justificada')}"></td><td th:text="${@vista.num(k.porcentaje, 0) + '%'}"></td></tr>
+  </tbody></table>
+
+  <h3>Observaciones</h3>
+  <p class="conclusion" th:text="${b.observacion}"></p>
+  <div class="firmas"><div>Docente / Tutor</div><div>Dirección</div></div>
+</article>
+</th:block>
+</body>
+</html>

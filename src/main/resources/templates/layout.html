@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:fragment="pagina(titulo, activa, contenido)">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title th:text="${titulo} + ' - Colegio Rural'">Colegio Rural</title>
+<link rel="stylesheet" href="/assets/estilos.css">
+<script>try{var t=localStorage.getItem('tema');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="marca"><th:block th:utext="${@vista.logo()}"></th:block><span>COLEGIO RURAL</span></div>
+    <nav aria-label="Principal">
+      <a th:each="i : ${menu}" th:href="${i.ruta}" th:classappend="${i.ruta == activa} ? 'act'">
+        <th:block th:utext="${@vista.icono(i.icono)}"></th:block><th:block th:text="${i.titulo}"></th:block>
+        <span class="cnt" th:if="${i.ruta == '/alertas' and alertasActivas gt 0}" th:text="${alertasActivas}"></span>
+      </a>
+    </nav>
+    <div class="pie-lat">
+      <span th:text="${u.nombre}"></span><br><small>Rol: <span th:text="${u.rol}"></span></small>
+      <form method="post" action="/logout"><th:block th:replace="~{fragmentos :: csrf}"></th:block>
+        <button class="btn sec chico" style="width:100%;justify-content:center"><th:block th:utext="${@vista.icono('salir')}"></th:block>Cerrar sesión</button></form>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <button class="icon-btn menu-btn" id="btnMenu" type="button" aria-label="Abrir menú"><th:block th:utext="${@vista.icono('menu')}"></th:block></button>
+      <h1 th:text="${titulo}">Título</h1>
+      <span class="espacio"></span>
+      <form class="buscador" method="get" action="/estudiantes" role="search" th:if="${u.rol == 'admin' or u.rol == 'docente'}">
+        <th:block th:utext="${@vista.icono('buscar')}"></th:block><input type="text" name="q" placeholder="Buscar estudiante" aria-label="Buscar estudiante"></form>
+      <a class="icon-btn" href="/alertas?estado=activa" title="Alertas activas" aria-label="Alertas activas" th:if="${u.rol != 'alumno'}">
+        <th:block th:utext="${@vista.icono('alerta')}"></th:block><span class="punto" th:if="${alertasActivas gt 0}" th:text="${alertasActivas}"></span></a>
+      <button class="icon-btn" id="btnTema" type="button" title="Cambiar entre modo claro y oscuro" aria-label="Cambiar tema"><th:block th:utext="${@vista.icono('luna')}"></th:block></button>
+      <div class="usuario-chip"><span class="avatar" th:text="${u.inicial()}"></span><span class="nombre" th:text="${u.nombre}"></span></div>
+    </header>
+    <main class="contenido" th:insert="${contenido}"></main>
+  </div>
+</div>
+
+<dialog class="modal" id="dlgConfirm">
+  <div class="modal-card">
+    <header><h2>Confirmar acción</h2></header>
+    <div class="cuerpo"><p data-msg style="margin:0"></p></div>
+    <footer><button type="button" class="btn sec" data-cerrar>Cancelar</button><button type="button" class="btn peligro" data-si>Sí, continuar</button></footer>
+  </div>
+</dialog>
+
+<div class="toasts" role="status" aria-live="polite">
+  <div th:each="a : ${avisos}" class="toast" th:classappend="${a.tipo == 'error'} ? 'error'" th:text="${a.texto}"></div>
+</div>
+<script th:if="${abrirDialogo != null}" th:inline="javascript">window.APP = /*[[${abrirDialogo}]]*/ null;</script>
+<script src="/assets/app.js"></script>
+</body>
+</html>

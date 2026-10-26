@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: pagina('Estudiantes', '/estudiantes', ~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="cabecera-pag">
+  <div><h2>Estudiantes</h2><p>Registra, busca y revisa el estado de cada estudiante.</p></div>
+  <div style="display:flex;gap:8px">
+    <a class="btn sec" th:href="'/reportes/excel?grado=' + ${f.grado}"><th:block th:utext="${@vista.icono('bajar')}"></th:block>Exportar a Excel</a>
+    <button type="button" class="btn sec" data-open="dlgImp"><th:block th:utext="${@vista.icono('subir')}"></th:block>Importar CSV</button>
+    <button type="button" class="btn" data-open="dlgEst" data-title="Nuevo estudiante"><th:block th:utext="${@vista.icono('mas')}"></th:block>Nuevo estudiante</button>
+  </div>
+</div>
+
+<div class="card">
+  <form class="filtros" method="get">
+    <label class="buscador"><th:block th:utext="${@vista.icono('buscar')}"></th:block><input type="text" name="q" th:value="${f.q}" placeholder="Nombre, apellido o DNI" aria-label="Buscar"></label>
+    <select name="grado" data-auto aria-label="Grado"><option value="">Todos los grados</option>
+      <option th:each="g : ${grados}" th:text="${g}" th:selected="${f.grado == g}"></option></select>
+    <select name="estado" data-auto aria-label="Estado"><option value="">Activos e inactivos</option>
+      <option value="1" th:selected="${f.estado == '1'}">Solo activos</option><option value="0" th:selected="${f.estado == '0'}">Solo inactivos</option></select>
+    <select name="orden" data-auto aria-label="Ordenar">
+      <option value="apellidos" th:selected="${f.orden == 'apellidos'}">Apellido A-Z</option>
+      <option value="apellidos_desc" th:selected="${f.orden == 'apellidos_desc'}">Apellido Z-A</option>
+      <option value="nombres" th:selected="${f.orden == 'nombres'}">Nombre A-Z</option>
+      <option value="grado" th:selected="${f.orden == 'grado'}">Por grado</option>
+      <option value="reciente" th:selected="${f.orden == 'reciente'}">Más recientes</option></select>
+    <button class="btn">Buscar</button>
+    <a class="btn sec" href="/estudiantes">Restablecer filtros</a>
+  </form>
+
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Estudiante</th><th>Grado</th><th>Promedio</th><th>Asistencia</th><th>Alertas</th><th>Estado</th><th></th></tr></thead>
+    <tbody>
+    <tr th:if="${r.items.isEmpty()}"><td colspan="7" class="vacio">No hay estudiantes con esos filtros. Prueba restablecerlos o registra uno nuevo.</td></tr>
+    <tr th:each="x : ${r.items}" th:with="e=${x.estudiante}">
+      <td><div class="persona"><span class="avatar" th:text="${e.iniciales()}"></span>
+        <div><a th:href="'/estudiantes/' + ${e.id}" th:text="${e.apellidosNombres()}"></a><div class="sec">DNI <span th:text="${e.dni}"></span></div></div></div></td>
+      <td><span th:text="${e.grado}"></span> <span class="sec">sec. <span th:text="${e.seccion}"></span></span></td>
+      <td><th:block th:replace="~{fragmentos :: nota(${x.promedio})}"></th:block></td>
+      <td><th:block th:replace="~{fragmentos :: asistencia(${x.asistencia})}"></th:block></td>
+      <td><span th:if="${x.alertas gt 0}" class="badge rojo" th:text="${x.alertas}"></span><span th:unless="${x.alertas gt 0}" class="sec">0</span></td>
+      <td><span class="badge" th:classappend="${e.activo} ? 'verde' : 'gris'" th:text="${e.activo} ? 'Activo' : 'Inactivo'"></span></td>
+      <td><div class="acciones">
+        <a class="icon-btn" th:href="'/estudiantes/' + ${e.id}" title="Ver ficha" aria-label="Ver ficha"><th:block th:utext="${@vista.icono('ver')}"></th:block></a>
+        <button type="button" class="icon-btn" data-open="dlgEst" data-title="Editar estudiante" th:attr="data-fill=${@vista.json('id', e.id, 'nombres', e.nombres, 'apellidos', e.apellidos, 'grado', e.grado, 'seccion', e.seccion, 'dni', e.dni)}" title="Editar" aria-label="Editar"><th:block th:utext="${@vista.icono('editar')}"></th:block></button>
+        <form method="post"><th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="estado"><input type="hidden" name="id" th:value="${e.id}"><button class="btn sec chico" th:text="${e.activo} ? 'Desactivar' : 'Activar'"></button></form>
+        <form method="post" th:attr="data-confirm='¿Eliminar a ' + ${e.nombreCompleto()} + '? También se borrarán sus notas y alertas.'"><th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="eliminar"><input type="hidden" name="id" th:value="${e.id}"><button class="icon-btn peligro" title="Eliminar" aria-label="Eliminar"><th:block th:utext="${@vista.icono('borrar')}"></th:block></button></form>
+      </div></td>
+    </tr>
+    </tbody>
+  </table></div>
+  <th:block th:replace="~{fragmentos :: paginador(${r.total}, ${pagina}, ${porPagina})}"></th:block>
+</div>
+
+<dialog class="modal" id="dlgEst">
+  <form method="post" class="modal-card">
+    <header><h2 data-titulo>Nuevo estudiante</h2><button type="button" class="icon-btn" data-cerrar aria-label="Cerrar">×</button></header>
+    <div class="cuerpo">
+      <th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="guardar"><input type="hidden" name="id" value="">
+      <p class="error-box" role="alert" th:if="${errorDialogo != null}" th:text="${errorDialogo}"></p>
+      <div class="form-grid">
+        <label class="campo">Nombres<input type="text" name="nombres" maxlength="60" required></label>
+        <label class="campo">Apellidos<input type="text" name="apellidos" maxlength="60" required></label>
+        <label class="campo">Grado<select name="grado"><option th:each="g : ${grados}" th:text="${g}"></option></select></label>
+        <label class="campo">Sección<select name="seccion"><option th:each="s : ${secciones}" th:text="${s}"></option></select></label>
+        <label class="campo ancho">DNI<input type="text" name="dni" maxlength="8" inputmode="numeric" pattern="\d{8}" required><small>8 dígitos, sin espacios.</small></label>
+      </div>
+    </div>
+    <footer><button type="button" class="btn sec" data-cerrar>Cancelar</button><button class="btn">Guardar estudiante</button></footer>
+  </form>
+</dialog>
+<dialog class="modal" id="dlgImp">
+  <form method="post" enctype="multipart/form-data" class="modal-card">
+    <header><h2>Importar estudiantes desde Excel/CSV</h2><button type="button" class="icon-btn" data-cerrar aria-label="Cerrar">×</button></header>
+    <div class="cuerpo">
+      <th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="importar">
+      <p style="margin-top:0">Columnas: <code>nombres, apellidos, grado, seccion, dni</code>. En Excel usa «Guardar como → CSV». Las filas con errores se omiten y se avisa.</p>
+      <input type="file" name="archivo" accept=".csv,text/csv" required aria-label="Archivo CSV">
+      <p><a href="/estudiantes/plantilla"><th:block th:utext="${@vista.icono('bajar')}"></th:block> Descargar plantilla de ejemplo</a></p>
+    </div>
+    <footer><button type="button" class="btn sec" data-cerrar>Cancelar</button><button class="btn">Importar</button></footer>
+  </form>
+</dialog>
+</th:block>
+</body>
+</html>

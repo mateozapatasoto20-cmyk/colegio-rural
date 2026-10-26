@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: pagina('Reglas del sistema', '/reglas', ~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="cabecera-pag"><div><h2>Reglas del sistema</h2><p>Define cuándo el sistema crea alertas automáticas. Los cambios se guardan en la base de datos.</p></div></div>
+<div class="grid g-2-1">
+  <div class="card">
+    <h2>Mínimos y límites</h2>
+    <form method="post" class="form-grid">
+      <th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="guardar">
+      <label class="campo">Nota mínima aprobatoria<input type="number" name="nota_minima" min="1" max="20" step="0.5" th:value="${@vista.num(r.notaMinima)}" required><small>Una nota menor crea una alerta de nota baja (escala 0 a 20).</small></label>
+      <label class="campo">Asistencia mínima (%)<input type="number" name="asistencia_minima" min="1" max="100" th:value="${@vista.num(r.asistenciaMinima)}" required><small>Menos de este porcentaje crea una alerta de asistencia.</small></label>
+      <label class="campo">Faltas seguidas para alertar<input type="number" name="faltas_seguidas" min="2" max="10" th:value="${r.faltasSeguidas}" required><small>Se cuenta desde el pase de lista diario.</small></label>
+      <div class="ancho" style="display:flex;justify-content:flex-end"><button class="btn"><th:block th:utext="${@vista.icono('ok')}"></th:block>Guardar reglas</button></div>
+    </form>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <h2>Revisar con las reglas actuales</h2>
+      <p style="margin-top:0">Si cambiaste un mínimo, revisa todas las notas de estudiantes activos y crea las alertas que falten. No se duplican las que ya existen.</p>
+      <form method="post"><th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="recalcular"><button class="btn sec"><th:block th:utext="${@vista.icono('alerta')}"></th:block>Recalcular alertas</button></form>
+    </div>
+    <div class="card">
+      <h2>Reglas activas</h2>
+      <ul class="lista-pasos">
+        <li>Nota baja: menor a <b th:text="${@vista.num(r.notaMinima)}"></b></li>
+        <li>Asistencia baja: menor a <b th:text="${@vista.num(r.asistenciaMinima, 0) + '%'}"></b></li>
+        <li>Faltas seguidas: <b th:text="${r.faltasSeguidas}"></b> o más</li>
+      </ul>
+      <p class="leyenda">Cada regla es una clase en <code>com.colegiorural.regla</code> marcada con <code>@Component</code>. Agregar otra no obliga a cambiar el servicio de alertas (principio abierto/cerrado).</p>
+    </div>
+  </div>
+</div>
+</th:block>
+</body>
+</html>

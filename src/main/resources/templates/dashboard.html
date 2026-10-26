@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: pagina('Inicio', '/dashboard', ~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="cabecera-pag">
+  <div><h2>Hola, <span th:text="${@vista.primerNombre(u.nombre)}"></span></h2>
+       <p>Resumen del colegio. Lo que más necesita atención está a la derecha.</p></div>
+  <div style="display:flex;gap:8px" th:if="${puedeNotas}">
+    <a class="btn sec" href="/estudiantes?nuevo=1"><th:block th:utext="${@vista.icono('mas')}"></th:block>Nuevo estudiante</a>
+    <a class="btn" href="/calificaciones?nuevo=1"><th:block th:utext="${@vista.icono('notas')}"></th:block>Registrar nota</a></div>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="et">Estudiantes activos</div><div class="num" th:text="${d.activos}"></div><div class="sub">de <span th:text="${d.estudiantes}"></span> registrados</div></div>
+  <div class="kpi"><div class="et">Promedio general</div><div class="num" th:text="${@vista.num(d.promedio)}"></div><div class="sub">mínimo aprobatorio: <span th:text="${@vista.num(d.notaMinima, 0)}"></span></div></div>
+  <div class="kpi"><div class="et">Asistencia promedio</div><div class="num" th:text="${d.asistencia == null ? '—' : @vista.num(d.asistencia, 0) + '%'}"></div><div class="sub"><span th:text="${d.docentes}"></span> docentes · <span th:text="${d.cursos}"></span> cursos</div></div>
+  <a class="kpi alerta" href="/alertas?estado=activa"><div class="et">Alertas activas</div><div class="num" th:text="${d.alertas}"></div><div class="sub">Ver y resolver</div></a>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <div class="card-cab"><h2>Último pase de lista<span th:if="${d.ultimoDia.fecha != null}" th:text="' · ' + ${@vista.fecha(d.ultimoDia.fecha)}"></span></h2>
+    <a class="btn sec chico" href="/asistencia" th:if="${puedeNotas}"><th:block th:utext="${@vista.icono('lista')}"></th:block>Pasar lista</a></div>
+  <p class="vacio" th:if="${d.ultimoDia.fecha == null}">Todavía no se pasó lista.</p>
+  <div class="resumen-dia" th:if="${d.ultimoDia.fecha != null}">
+    <div class="pill"><b th:text="${@vista.n(d.ultimoDia.conteo, 'presente')}"></b><span>Presentes</span></div>
+    <div class="pill"><b th:text="${@vista.n(d.ultimoDia.conteo, 'tardanza')}"></b><span>Tardanzas</span></div>
+    <div class="pill f"><b th:text="${@vista.n(d.ultimoDia.conteo, 'falta')}"></b><span>Faltas</span></div>
+    <div class="pill"><b th:text="${@vista.n(d.ultimoDia.conteo, 'justificada')}"></b><span>Justificadas</span></div>
+  </div>
+</div>
+
+<div class="grid g-2-1">
+  <div class="grid">
+    <div class="card">
+      <h2>Asistencia de los últimos días</h2>
+      <th:block th:if="${!d.tendencia.isEmpty()}" th:replace="~{fragmentos :: barras(${d.tendencia})}"></th:block>
+      <p class="vacio" th:if="${d.tendencia.isEmpty()}">Sin datos de asistencia.</p>
+      <p class="leyenda">Porcentaje de estudiantes que asistieron cada día. En ámbar, por debajo del mínimo.</p>
+    </div>
+    <div class="card">
+      <h2>Distribución de notas</h2>
+      <th:block th:replace="~{fragmentos :: barras(${d.distribucion})}"></th:block>
+      <p class="leyenda">Cantidad de calificaciones por rango. En rojo, las que están por debajo de <span th:text="${@vista.num(d.notaMinima, 0)}"></span>.</p>
+    </div>
+    <div class="grid g2">
+      <div class="card"><h2>Alertas activas por tipo</h2><th:block th:replace="~{fragmentos :: barras(${d.alertasPorTipo})}"></th:block></div>
+      <div class="card"><h2>Estudiantes por grado</h2><th:block th:replace="~{fragmentos :: barras(${d.porGrado})}"></th:block></div>
+    </div>
+  </div>
+  <div class="grid" style="align-content:start">
+    <div class="card">
+      <div class="card-cab"><h2>Estudiantes en riesgo</h2></div>
+      <p class="vacio" th:if="${d.enRiesgo.isEmpty()}">No hay estudiantes con alertas activas.</p>
+      <ul class="lista-riesgo">
+        <li th:each="r : ${d.enRiesgo}"><span class="avatar" th:text="${r.estudiante.iniciales()}"></span>
+          <span class="quien"><a th:href="'/estudiantes/' + ${r.estudiante.id}" th:text="${r.estudiante.nombreCompleto()}"></a><span th:text="${r.estudiante.gradoSeccion()}"></span></span>
+          <span class="badge rojo" th:text="${r.alertas + (r.alertas == 1 ? ' alerta' : ' alertas')}"></span></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Cuadro de honor</h2>
+      <p class="vacio" th:if="${d.honor.isEmpty()}">Aún no hay notas.</p>
+      <ol class="honor">
+        <li th:each="h : ${d.honor}"><span class="quien"><a th:href="'/estudiantes/' + ${h.estudiante.id}" th:text="${h.estudiante.nombreCompleto()}"></a><span th:text="${h.estudiante.gradoSeccion()}"></span></span><span class="badge verde" th:text="${@vista.num(h.promedio)}"></span></li>
+      </ol>
+    </div>
+    <div class="card">
+      <div class="card-cab"><h2>Comunicados</h2><a href="/comunicados">Ver todos</a></div>
+      <p class="vacio" th:if="${d.comunicados.isEmpty()}">Sin comunicados.</p>
+      <div class="mini-com"><div th:each="a : ${d.comunicados}"><b th:text="${a.titulo}"></b><span th:text="${a.autor + ' · ' + @vista.dia(a.creado)}"></span></div></div>
+    </div>
+    <div class="card">
+      <h2>Últimas alertas</h2>
+      <div class="hist">
+        <p class="vacio" th:if="${d.ultimas.isEmpty()}">Sin alertas por ahora.</p>
+        <div class="hist-item" th:each="a : ${d.ultimas}"><th:block th:replace="~{fragmentos :: tipo(${a.alerta.tipo})}"></th:block><div><p><b th:text="${a.estudiante.nombreCompleto()}"></b></p><p class="sec" th:text="${a.alerta.mensaje}"></p></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</th:block>
+</body>
+</html>

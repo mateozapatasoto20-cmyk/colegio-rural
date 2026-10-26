@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: pagina('Cursos', '/cursos', ~{::content})}">
+<body>
+<th:block th:fragment="content">
+<div class="cabecera-pag"><div><h2>Cursos y asignaciones</h2><p>Crea cursos y elige el docente responsable de cada uno.</p></div>
+  <button type="button" class="btn" data-open="dlgCurso" data-title="Nuevo curso"><th:block th:utext="${@vista.icono('mas')}"></th:block>Nuevo curso</button></div>
+<div class="card"><div class="tabla-wrap"><table>
+  <thead><tr><th>Curso</th><th>Grado</th><th>Periodo</th><th>Docente responsable</th><th></th></tr></thead><tbody>
+  <tr th:if="${cursos.isEmpty()}"><td colspan="5" class="vacio">Aún no hay cursos. Crea el primero con «Nuevo curso».</td></tr>
+  <tr th:each="x : ${cursos}" th:with="k=${x.curso}">
+    <td><b th:text="${k.nombre}"></b></td><td><span th:text="${k.grado}"></span> <span class="sec">sec. <span th:text="${k.seccion}"></span></span></td><td th:text="${k.periodo}"></td>
+    <td><form method="post"><th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="asignar"><input type="hidden" name="curso_id" th:value="${k.id}">
+      <select name="docente_id" data-auto th:attr="aria-label='Docente de ' + ${k.nombre}"><option value="0">Sin asignar</option>
+        <option th:each="d : ${docentes}" th:value="${d.id}" th:text="${d.nombreCompleto()}" th:selected="${x.docenteId != null and x.docenteId == d.id}"></option></select></form></td>
+    <td><div class="acciones"><form method="post" th:attr="data-confirm='¿Eliminar el curso ' + ${k.nombre} + ' (' + ${k.grado} + ')?'"><th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="eliminar"><input type="hidden" name="id" th:value="${k.id}"><button class="icon-btn peligro" title="Eliminar" aria-label="Eliminar"><th:block th:utext="${@vista.icono('borrar')}"></th:block></button></form></div></td></tr>
+</tbody></table></div></div>
+<dialog class="modal" id="dlgCurso"><form method="post" class="modal-card">
+  <header><h2 data-titulo>Nuevo curso</h2><button type="button" class="icon-btn" data-cerrar aria-label="Cerrar">×</button></header>
+  <div class="cuerpo"><th:block th:replace="~{fragmentos :: csrf}"></th:block><input type="hidden" name="accion" value="crear"><p class="error-box" role="alert" th:if="${errorDialogo != null}" th:text="${errorDialogo}"></p>
+    <div class="form-grid"><label class="campo ancho">Nombre del curso<input type="text" name="nombre" required></label>
+    <label class="campo">Grado<select name="grado"><option th:each="g : ${grados}" th:text="${g}"></option></select></label>
+    <label class="campo">Sección<select name="seccion"><option th:each="s : ${secciones}" th:text="${s}"></option></select></label>
+    <label class="campo ancho">Periodo<input type="text" name="periodo" th:value="${periodo}" required></label></div></div>
+  <footer><button type="button" class="btn sec" data-cerrar>Cancelar</button><button class="btn">Crear curso</button></footer></form></dialog>
+</th:block>
+</body>
+</html>
